@@ -1,0 +1,6 @@
+.idea/
+conf/conf.toml
+logs/
+auto.sh
+www.markbest.site.log
+bin/

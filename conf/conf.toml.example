@@ -1,0 +1,13 @@
+[app]
+port = ""
+
+[elastic]
+elastic_url = ""
+elastic_index = ""
+elastic_type = ""
+elastic_log_path = "./logs"
+elastic_log_max_files = 5
+
+[log]
+target_path = ""
+target_file_prefix = ""
