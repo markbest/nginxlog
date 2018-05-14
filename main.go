@@ -1,21 +1,16 @@
 package main
 
 import (
-	"flag"
 	"github.com/julienschmidt/httprouter"
 	"log"
 	"net/http"
 	"github.com/markbest/nginxlog/api"
 	"github.com/markbest/nginxlog/conf"
 	"github.com/markbest/nginxlog/utils"
-	"runtime"
 	"time"
 )
 
 func main() {
-	runtime.GOMAXPROCS(runtime.NumCPU())
-	flag.Parse()
-
 	//load config
 	if err := conf.InitConfig(); err != nil {
 		log.Panic(err)
