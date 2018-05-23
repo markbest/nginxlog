@@ -19,12 +19,7 @@ elastic_log_max_files = 5
 target_path = "日志目录"
 tartet_file_prefix = "默认日志文件前缀名称"
 ```
-- 编译为可执行文件: go build -o bin/nginxlog main.go，然后加入path目录
-- 执行命令分析日志入库
-
-```
-bin/nginxlog
-```
+- 编译为可执行文件: go build -o agent agent.go，然后加入path目录，执行agent即可
 
 ## 接口路由
 ```
