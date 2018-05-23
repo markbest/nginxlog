@@ -2,12 +2,14 @@ package main
 
 import (
 	"github.com/julienschmidt/httprouter"
-	"github.com/markbest/nginxlog/api"
-	"github.com/markbest/nginxlog/conf"
-	"github.com/markbest/nginxlog/utils"
 	"log"
 	"net/http"
+	"github.com/markbest/nginxlog/api"
+	"github.com/markbest/nginxlog/conf"
+	"github.com/markbest/nginxlog/process"
+	"github.com/markbest/nginxlog/utils"
 	"runtime"
+	"sync"
 	"time"
 )
 
@@ -16,10 +18,10 @@ func main() {
 
 	// load config
 	if err := conf.InitConfig(); err != nil {
-		log.Panic(err)
+		panic(err)
 	}
 
-	// monitor parse log file
+	// monitor parse log process
 	go parseLogProcess()
 
 	// auto clear logs
@@ -29,34 +31,48 @@ func main() {
 	startHttpServer()
 }
 
-// monitor parse single log file
 func parseLogProcess() {
-	tick := time.NewTicker(1 * time.Minute)
+	tick := time.NewTicker(5 * time.Minute)
 	for {
 		select {
 		case <-tick.C:
-			t := time.Now()
-			if t.Minute()%5 != 0 {
-				log.Println("current time:", time.Unix(t.Unix(), 0).Format("2006-01-02 15:04:05"))
-				continue
-			}
-
 			// log handle
 			logFile, logHandle := utils.ElasticLogHandle()
+			defer logFile.Close()
 
 			// elastic client
 			esClient := utils.NewES(conf.Conf.Elastic.ElasticUrl, logHandle)
 			esClient.CreateIndex(conf.Conf.Elastic.ElasticIndex)
 
-			var logParse utils.LogStreamData
-			err := logParse.OpenStream(conf.Conf.Log.TargetPath + conf.Conf.Log.TargetFilePrefix)
-			if err != nil {
-				log.Println(err)
+			wgp := &sync.WaitGroup{}
+			targetLogFile := utils.GetLast10MinLogFile()
+			count := utils.GetLogsDataCount(targetLogFile)
+			if count > 0 {
+				wgp.Add(count)
+			} else {
 				continue
 			}
-			logParse.ParseStream(esClient, conf.Conf.Elastic.ElasticIndex, conf.Conf.Elastic.ElasticType)
-			logParse.CloseStream()
-			logFile.Close()
+
+			reader := &process.ReadFromFile{
+				FilePath: targetLogFile,
+			}
+
+			writer := &process.WriteToES{
+				ESClient: esClient,
+				ESIndex:  conf.Conf.Elastic.ElasticIndex,
+				ESType:   conf.Conf.Elastic.ElasticType,
+				Wgp:      wgp,
+			}
+
+			logProcess := process.LogProcess{
+				ReadChan:  make(chan string),
+				WriteChan: make(chan string),
+			}
+
+			go logProcess.ReadSource(reader)
+			go logProcess.ParseLogData()
+			go logProcess.WriteTarget(writer)
+			wgp.Wait()
 		}
 	}
 }

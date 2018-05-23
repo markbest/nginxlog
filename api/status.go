@@ -1,11 +1,11 @@
 package api
 
 import (
-	"github.com/markbest/nginxlog/conf"
-	"github.com/markbest/nginxlog/utils"
 	"encoding/json"
 	"fmt"
 	"github.com/julienschmidt/httprouter"
+	"github.com/markbest/nginxlog/conf"
+	"github.com/markbest/nginxlog/utils"
 	"net/http"
 )
 

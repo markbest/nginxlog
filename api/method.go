@@ -1,11 +1,11 @@
 package api
 
 import (
-	"github.com/markbest/nginxlog/conf"
-	"github.com/markbest/nginxlog/utils"
 	"encoding/json"
 	"fmt"
 	"github.com/julienschmidt/httprouter"
+	"github.com/markbest/nginxlog/conf"
+	"github.com/markbest/nginxlog/utils"
 	"net/http"
 )
 
@@ -26,7 +26,7 @@ func GetMethod(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	res, err := esClient.Index(conf.Conf.Elastic.ElasticIndex).
 		Type(conf.Conf.Elastic.ElasticType).
 		Where("request_type", method).
-	        OrderBy("created_at", "desc").
+		OrderBy("created_at", "desc").
 		Take(perPage).
 		Page(page).
 		Search()
