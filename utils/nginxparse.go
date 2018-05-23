@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-//Nginx data fields as per the Split Function
+// Nginx data fields as per the Split Function
 type LogFormat struct {
 	RemoteAddr        string    `json:"remote_addr"`
 	RemoteUser        string    `json:"remote_user"`
@@ -26,13 +26,13 @@ type LogFormat struct {
 	CreatedAt         int64     `json:"created_at"`
 }
 
-//Struct for the object
+// Struct for the object
 type LogStreamData struct {
 	fileHandle *os.File
 	fileErr    error
 }
 
-//Reading the file
+// Reading the file
 func (log *LogStreamData) OpenStream(filename string) error {
 	currentTime := time.Now().Unix()
 	last10min := currentTime - currentTime%300 - 600
@@ -44,8 +44,8 @@ func (log *LogStreamData) OpenStream(filename string) error {
 	return nil
 }
 
-//Here lines are read and mapped to data struct
-func (log *LogStreamData) ParseStream(client *ES, elasticIndex string, elasticType string, all bool) {
+// Here lines are read and mapped to data struct
+func (log *LogStreamData) ParseStream(client *ES, elasticIndex string, elasticType string) {
 	maxReadLine := 100
 	line := 1
 	parseTimeCount := 1
@@ -69,12 +69,12 @@ func (log *LogStreamData) ParseStream(client *ES, elasticIndex string, elasticTy
 	}
 }
 
-//close the file handle
+// close the file handle
 func (log *LogStreamData) CloseStream() {
 	log.fileHandle.Close()
 }
 
-//output file parsed content
+// output file parsed content
 func (log *LogStreamData) output(content []*LogFormat, client *ES, elasticIndex string, elasticType string) {
 	if len(content) > 0 {
 		for _, v := range content {
@@ -90,44 +90,44 @@ func (log *LogStreamData) output(content []*LogFormat, client *ES, elasticIndex 
 	}
 }
 
-//Regexp parse log line content
+// Regexp parse log line content
 func parseLogContent(logLine string) (rs *LogFormat) {
-	//remote addr
+	// remote addr
 	remoteAddrReg := regexp.MustCompile(`([0-9]{1,3}\.){3}[0-9]{1,3}`)
 	remoteAddrData := remoteAddrReg.FindAllString(logLine, -1)[0]
 
-	//remote user
+	// remote user
 	remoteUserData := ""
 
-	//time local
+	// time local
 	timeLocalReg := regexp.MustCompile(`\[\d{1,2}\/\w{3}\/\d{1,4}(:[0-9]{1,2}){3} \+([0-9]){1,4}\]`)
 	timeLocalData := timeLocalReg.FindAllString(logLine, -1)[0]
 	parsedTime, _ := time.Parse("[02/Jan/2006:15:04:05 -0700]", timeLocalData)
 	parsedTimeUnix := parsedTime.Unix()
 
-	//request type
+	// request type
 	requestTypeReg := regexp.MustCompile(`"\w+`)
 	requestTypeData := requestTypeReg.FindAllString(logLine, -1)[0]
 	requestTypeData = requestTypeData[1:]
 
-	//request url
+	// request url
 	requestUrlReg := regexp.MustCompile(`"\w+\s[^\s]+`)
 	requestUrlData := requestUrlReg.FindAllString(logLine, -1)[0]
 	requestUrlData = requestUrlData[5:]
 
-	//http version
+	// http version
 	httpVersionReg := regexp.MustCompile(`HTTP\/\d.\d"`)
 	httpVersionData := httpVersionReg.FindAllString(logLine, -1)[0]
 	httpVersionData = httpVersionData[:len(httpVersionData)-1]
 
-	//status && body bytes sent
+	// status && body bytes sent
 	responseAndByteReg := regexp.MustCompile(`([0-9]{1,3}) \d+`)
 	responseAndByteData := responseAndByteReg.FindAllString(logLine, -1)[0]
 	str := strings.Split(responseAndByteData, " ")
 	statusData, _ := strconv.Atoi(str[0])
 	bodyBytesSentData, _ := strconv.Atoi(str[1])
 
-	//http referer
+	// http referer
 	var httpReferer string
 	httpRefererReg := regexp.MustCompile(`(https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]`)
 	httpRefererData := httpRefererReg.FindAllString(logLine, -1)
@@ -137,15 +137,15 @@ func parseLogContent(logLine string) (rs *LogFormat) {
 		httpReferer = ""
 	}
 
-	//http user agent
+	// http user agent
 	str = strings.Split(logLine, "\" \"")
 	httpUserAgentData := str[len(str)-1]
 	httpUserAgentData = httpUserAgentData[0 : len(httpUserAgentData)-2]
 
-	//http x forwarded for data
+	// http x forwarded for data
 	httpXForwardedForData := ""
 
-	//append parse result to content
+	// append parse result to content
 	rs = &LogFormat{
 		RemoteAddr:        remoteAddrData,
 		RemoteUser:        remoteUserData,
