@@ -2,10 +2,11 @@ package api
 
 import (
 	"fmt"
+	"net/http"
+
 	"github.com/julienschmidt/httprouter"
 	"github.com/markbest/nginxlog/conf"
 	"github.com/markbest/nginxlog/utils"
-	"net/http"
 )
 
 //search ip data

@@ -64,25 +64,19 @@ func GetFileList(path string, pattern string) []string {
 
 // clear es record logs
 func ClearLogs() {
-	tick := time.NewTicker(time.Hour * 24)
-	for {
-		select {
-		case <-tick.C:
-			maxLogFiles := conf.Conf.Elastic.ElasticLogMaxFiles
-			logFiles := GetFileList(conf.Conf.Elastic.ElasticLogPath, "")
-			if len(logFiles) > 0 {
-				for _, v := range logFiles {
-					f, _ := os.Stat(v)
-					if f.IsDir() {
-						continue
-					}
+	maxLogFiles := conf.Conf.Elastic.ElasticLogMaxFiles
+	logFiles := GetFileList(conf.Conf.Elastic.ElasticLogPath, "")
+	if len(logFiles) > 0 {
+		for _, v := range logFiles {
+			f, _ := os.Stat(v)
+			if f.IsDir() {
+				continue
+			}
 
-					modTime := f.ModTime().Unix()
-					curTime := time.Now().Unix()
-					if curTime-modTime > int64(maxLogFiles*86400) {
-						os.Remove(v)
-					}
-				}
+			modTime := f.ModTime().Unix()
+			curTime := time.Now().Unix()
+			if curTime-modTime > int64(maxLogFiles*86400) {
+				os.Remove(v)
 			}
 		}
 	}

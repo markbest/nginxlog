@@ -7,6 +7,8 @@ Golang解析nginx日志，存入elasticsearch
 ```
 [app]
 port = ":8090"
+pprof = "8091"
+debug = true
 
 [elastic]
 elastic_url = "elasticsearch地址"

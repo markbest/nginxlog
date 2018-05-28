@@ -2,11 +2,22 @@ package process
 
 import (
 	"encoding/json"
-	"github.com/markbest/nginxlog/utils"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/markbest/nginxlog/utils"
+)
+
+var (
+	remoteAddrReg      = regexp.MustCompile(`([0-9]{1,3}\.){3}[0-9]{1,3}`)
+	timeLocalReg       = regexp.MustCompile(`\[\d{1,2}\/\w{3}\/\d{1,4}(:[0-9]{1,2}){3} \+([0-9]){1,4}\]`)
+	requestTypeReg     = regexp.MustCompile(`"\w+`)
+	requestUrlReg      = regexp.MustCompile(`"\w+\s[^\s]+`)
+	httpVersionReg     = regexp.MustCompile(`HTTP\/\d.\d"`)
+	responseAndByteReg = regexp.MustCompile(`([0-9]{1,3}) \d+`)
+	httpRefererReg     = regexp.MustCompile(`(https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]`)
 )
 
 type reader interface {
@@ -37,35 +48,29 @@ func (l *LogProcess) ParseLogData() {
 		}
 
 		// remote addr
-		remoteAddrReg := regexp.MustCompile(`([0-9]{1,3}\.){3}[0-9]{1,3}`)
 		remoteAddrData := remoteAddrReg.FindAllString(data, -1)[0]
 
 		// remote user
 		remoteUserData := ""
 
 		// time local
-		timeLocalReg := regexp.MustCompile(`\[\d{1,2}\/\w{3}\/\d{1,4}(:[0-9]{1,2}){3} \+([0-9]){1,4}\]`)
 		timeLocalData := timeLocalReg.FindAllString(data, -1)[0]
 		parsedTime, _ := time.Parse("[02/Jan/2006:15:04:05 -0700]", timeLocalData)
 		parsedTimeUnix := parsedTime.Unix()
 
 		// request type
-		requestTypeReg := regexp.MustCompile(`"\w+`)
 		requestTypeData := requestTypeReg.FindAllString(data, -1)[0]
 		requestTypeData = requestTypeData[1:]
 
 		// request url
-		requestUrlReg := regexp.MustCompile(`"\w+\s[^\s]+`)
 		requestUrlData := requestUrlReg.FindAllString(data, -1)[0]
 		requestUrlData = requestUrlData[5:]
 
 		// http version
-		httpVersionReg := regexp.MustCompile(`HTTP\/\d.\d"`)
 		httpVersionData := httpVersionReg.FindAllString(data, -1)[0]
 		httpVersionData = httpVersionData[:len(httpVersionData)-1]
 
 		// status && body bytes sent
-		responseAndByteReg := regexp.MustCompile(`([0-9]{1,3}) \d+`)
 		responseAndByteData := responseAndByteReg.FindAllString(data, -1)[0]
 		str := strings.Split(responseAndByteData, " ")
 		statusData, _ := strconv.Atoi(str[0])
@@ -73,7 +78,6 @@ func (l *LogProcess) ParseLogData() {
 
 		// http referer
 		var httpReferer string
-		httpRefererReg := regexp.MustCompile(`(https?|ftp|file)://[-A-Za-z0-9+&@#/%?=~_|!:,.;]+[-A-Za-z0-9+&@#/%=~_|]`)
 		httpRefererData := httpRefererReg.FindAllString(data, -1)
 		if len(httpRefererData) > 0 {
 			httpReferer = httpRefererData[0]

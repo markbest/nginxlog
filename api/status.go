@@ -3,10 +3,11 @@ package api
 import (
 	"encoding/json"
 	"fmt"
+	"net/http"
+
 	"github.com/julienschmidt/httprouter"
 	"github.com/markbest/nginxlog/conf"
 	"github.com/markbest/nginxlog/utils"
-	"net/http"
 )
 
 //search status data

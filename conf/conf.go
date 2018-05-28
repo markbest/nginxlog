@@ -26,7 +26,9 @@ type config struct {
 }
 
 type app struct {
-	Port string `toml:"port"`
+	Port  string `toml:"port"`
+	Pprof string `toml:"pprof"`
+	Debug bool   `toml:"debug"`
 }
 
 type elastic struct {

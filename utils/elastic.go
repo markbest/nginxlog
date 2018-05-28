@@ -37,6 +37,7 @@ func NewES(host string, logHandle *log.Logger) *ES {
 		elastic.SetSniff(false),
 		elastic.SetTraceLog(logHandle),
 		elastic.SetRetrier(retry),
+		elastic.SetHealthcheck(false),
 	)
 	if err != nil {
 		panic(err)

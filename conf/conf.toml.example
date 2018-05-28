@@ -1,5 +1,7 @@
 [app]
 port = ""
+pprof = ""
+debug = true
 
 [elastic]
 elastic_url = ""

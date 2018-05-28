@@ -1,8 +1,9 @@
 package process
 
 import (
-	"github.com/markbest/nginxlog/utils"
 	"sync"
+
+	"github.com/markbest/nginxlog/utils"
 )
 
 type WriteToES struct {

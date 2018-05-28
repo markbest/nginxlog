@@ -1,16 +1,18 @@
 package main
 
 import (
-	"github.com/julienschmidt/httprouter"
 	"log"
 	"net/http"
+	_ "net/http/pprof"
+	"runtime"
+	"sync"
+	"time"
+
+	"github.com/julienschmidt/httprouter"
 	"github.com/markbest/nginxlog/api"
 	"github.com/markbest/nginxlog/conf"
 	"github.com/markbest/nginxlog/process"
 	"github.com/markbest/nginxlog/utils"
-	"runtime"
-	"sync"
-	"time"
 )
 
 func main() {
@@ -24,8 +26,8 @@ func main() {
 	// monitor parse log process
 	go parseLogProcess()
 
-	// auto clear logs
-	go utils.ClearLogs()
+	// debug pprof
+	debugpprof()
 
 	// start http server
 	startHttpServer()
@@ -36,13 +38,14 @@ func parseLogProcess() {
 	for {
 		select {
 		case <-tick.C:
+			// auto clear logs
+			utils.ClearLogs()
+
 			// log handle
 			logFile, logHandle := utils.ElasticLogHandle()
-			defer logFile.Close()
 
 			// elastic client
 			esClient := utils.NewES(conf.Conf.Elastic.ElasticUrl, logHandle)
-			esClient.CreateIndex(conf.Conf.Elastic.ElasticIndex)
 
 			wgp := &sync.WaitGroup{}
 			targetLogFile := utils.GetLast10MinLogFile()
@@ -50,6 +53,7 @@ func parseLogProcess() {
 			if count > 0 {
 				wgp.Add(count)
 			} else {
+				logFile.Close()
 				continue
 			}
 
@@ -73,7 +77,17 @@ func parseLogProcess() {
 			go logProcess.ParseLogData()
 			go logProcess.WriteTarget(writer)
 			wgp.Wait()
+			logFile.Close()
+
 		}
+	}
+}
+
+// start debug pprof server
+func debugpprof() {
+	if conf.Conf.App.Debug {
+		pprofServer := &http.Server{Addr: conf.Conf.App.Pprof}
+		go pprofServer.ListenAndServe()
 	}
 }
 
