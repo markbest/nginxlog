@@ -41,12 +41,7 @@ func (l *LogProcess) ReadSource(r reader) {
 
 // parse log data
 func (l *LogProcess) ParseLogData() {
-	for {
-		data, ok := <-l.ReadChan
-		if !ok {
-			break
-		}
-
+	for data := range l.ReadChan {
 		// remote addr
 		remoteAddrData := remoteAddrReg.FindAllString(data, -1)[0]
 

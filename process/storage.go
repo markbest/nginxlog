@@ -15,11 +15,7 @@ type WriteToES struct {
 
 // write to es
 func (w *WriteToES) Write(writeChan chan string) {
-	for {
-		data, ok := <-writeChan
-		if !ok {
-			break
-		}
+	for data := range writeChan {
 		w.ESClient.EsClient.Index().
 			Index(w.ESIndex).
 			Type(w.ESType).

@@ -78,7 +78,6 @@ func parseLogProcess() {
 			go logProcess.WriteTarget(writer)
 			wgp.Wait()
 			logFile.Close()
-
 		}
 	}
 }
