@@ -69,8 +69,8 @@ func parseLogProcess() {
 			}
 
 			logProcess := process.LogProcess{
-				ReadChan:  make(chan string),
-				WriteChan: make(chan string),
+				ReadChan:  make(chan string, 100),
+				WriteChan: make(chan string, 100),
 			}
 
 			go logProcess.ReadSource(reader)
