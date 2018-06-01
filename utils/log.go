@@ -66,7 +66,7 @@ func GetFileList(path string, pattern string) []string {
 func ClearLogs() {
 	maxLogFiles := conf.Conf.Elastic.ElasticLogMaxFiles
 	t := time.Now().Unix() - int64(maxLogFiles*86400)
-	lastF := conf.Conf.Elastic.ElasticLogPath + "log-" + time.Unix(t, 0).Format("2006-01-02")
+	lastF := conf.Conf.Elastic.ElasticLogPath + "/log-" + time.Unix(t, 0).Format("2006-01-02")
 	_, err := os.Stat(lastF)
 	if !os.IsNotExist(err) {
 		os.Remove(lastF)
