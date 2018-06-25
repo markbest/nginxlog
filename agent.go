@@ -5,14 +5,14 @@ import (
 	"net/http"
 	_ "net/http/pprof"
 	"runtime"
-	"sync"
 	"time"
 
-	"github.com/julienschmidt/httprouter"
 	"github.com/markbest/nginxlog/api"
 	"github.com/markbest/nginxlog/conf"
 	"github.com/markbest/nginxlog/process"
 	"github.com/markbest/nginxlog/utils"
+
+	"github.com/julienschmidt/httprouter"
 )
 
 func main() {
@@ -47,25 +47,17 @@ func parseLogProcess() {
 			// elastic client
 			esClient := utils.NewES(conf.Conf.Elastic.ElasticUrl, logHandle)
 
-			wgp := &sync.WaitGroup{}
+			endFlagChan := make(chan int)
 			targetLogFile := utils.GetLast10MinLogFile()
-			count := utils.GetLogsDataCount(targetLogFile)
-			if count > 0 {
-				wgp.Add(count)
-			} else {
-				logFile.Close()
-				continue
-			}
-
 			reader := &process.ReadFromFile{
 				FilePath: targetLogFile,
 			}
 
 			writer := &process.WriteToES{
-				ESClient: esClient,
-				ESIndex:  conf.Conf.Elastic.ElasticIndex,
-				ESType:   conf.Conf.Elastic.ElasticType,
-				Wgp:      wgp,
+				ESClient:    esClient,
+				ESIndex:     conf.Conf.Elastic.ElasticIndex,
+				ESType:      conf.Conf.Elastic.ElasticType,
+				EndFlagChan: endFlagChan,
 			}
 
 			logProcess := process.LogProcess{
@@ -76,7 +68,7 @@ func parseLogProcess() {
 			go logProcess.ReadSource(reader)
 			go logProcess.ParseLogData()
 			go logProcess.WriteTarget(writer)
-			wgp.Wait()
+			<-endFlagChan
 			logFile.Close()
 		}
 	}

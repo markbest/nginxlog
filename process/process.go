@@ -106,6 +106,7 @@ func (l *LogProcess) ParseLogData() {
 		jsonRs, _ := json.Marshal(rs)
 		l.WriteChan <- string(jsonRs)
 	}
+	close(l.WriteChan)
 }
 
 // write to target

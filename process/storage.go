@@ -7,10 +7,10 @@ import (
 )
 
 type WriteToES struct {
-	ESClient *utils.ES
-	ESIndex  string
-	ESType   string
-	Wgp      *sync.WaitGroup
+	ESClient    *utils.ES
+	ESIndex     string
+	ESType      string
+	EndFlagChan chan int
 }
 
 // write to es
@@ -21,6 +21,6 @@ func (w *WriteToES) Write(writeChan chan string) {
 			Type(w.ESType).
 			BodyJson(data).
 			Do()
-		w.Wgp.Done()
 	}
+	w.EndFlagChan <- 1
 }

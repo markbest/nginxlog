@@ -1,10 +1,8 @@
 package utils
 
 import (
-	"bufio"
 	"fmt"
 	"github.com/markbest/nginxlog/conf"
-	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -71,28 +69,6 @@ func ClearLogs() {
 	if !os.IsNotExist(err) {
 		os.Remove(lastF)
 	}
-}
-
-// get log file count lines
-func GetLogsDataCount(fileName string) (count int) {
-	file, err := os.Open(fileName)
-	if err != nil {
-		return count
-	}
-	defer file.Close()
-
-	buff := bufio.NewReader(file)
-	for {
-		logLine, err := buff.ReadString('\n')
-		if logLine != "" {
-			count++
-		} else {
-			if io.EOF == err {
-				break
-			}
-		}
-	}
-	return count
 }
 
 // get last 10 min log file name

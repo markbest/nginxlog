@@ -29,4 +29,5 @@ func (r *ReadFromFile) Read(readChan chan string) {
 			}
 		}
 	}
+	close(readChan)
 }
