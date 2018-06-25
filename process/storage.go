@@ -1,8 +1,6 @@
 package process
 
 import (
-	"sync"
-
 	"github.com/markbest/nginxlog/utils"
 )
 
